@@ -87,10 +87,11 @@ RUN apt-get update && \
     git branch && \
     git submodule update --init --recursive && \
     pip3 install --user toml empy jinja2 packaging pyros-genmsg numpy && \
-    make amovlab_sitl_default gazebo && \
+    make VERBOSE=1 amovlab_sitl_default gazebo && \
     cd Tools/setup && \
     source ./ubuntu.sh && \
     rm -rf /var/lib/apt/lists/*
+
 
 
 
