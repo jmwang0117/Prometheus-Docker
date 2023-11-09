@@ -75,7 +75,4 @@ RUN git clone https://github.com/stevengj/nlopt.git && \
     make && \
     sudo make install
 
-# Download Gazebo model library
-RUN mkdir -p /root/.gazebo/models && \
-    cd /root/.gazebo/models && \
-    git clone https://gitee.com/potato77/gazebo_model
+
