@@ -87,13 +87,11 @@ RUN apt-get update && \
     git branch && \
     git submodule update --init --recursive && \
     pip3 install --user toml empy jinja2 packaging pyros-genmsg numpy && \
-    make VERBOSE=1 amovlab_sitl_default gazebo && \
+    make VERBOSE=1 amovlab_sitl_default && \
+    make VERBOSE=1 gazebo && \
     cd Tools/setup && \
     source ./ubuntu.sh && \
     rm -rf /var/lib/apt/lists/*
-
-
-
 
 # Download Gazebo model library
 RUN mkdir -p /root/.gazebo/models && \
