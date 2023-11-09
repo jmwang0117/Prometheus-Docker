@@ -73,3 +73,7 @@ RUN apt-get update && \
 RUN mkdir -p /root/.gazebo/models && \
     cd /root/.gazebo/models && \
     git clone https://gitee.com/potato77/gazebo_model
+    
+RUN apt-get update && \
+    apt-get install -y gnome-terminal && \
+    rm -rf /var/lib/apt/lists/*
