@@ -75,23 +75,20 @@ RUN git clone https://github.com/stevengj/nlopt.git && \
     make && \
     sudo make install
 
-# Download Prometheus project (V1.1)
-RUN git clone -b v1.1 https://gitee.com/amovlab/Prometheus.git && \
-    cd Prometheus && \
-    git branch
-
 # PX4 build environment setup and firmware installation (for V1.1)
 RUN apt-get update && \
     git clone -b Prometheus_PX4_1.11.1 https://gitee.com/amovlab/prometheus_px4.git && \
     cd prometheus_px4/ && \
     git branch && \
     git submodule update --init --recursive && \
+    sed -i "s/with open(filename, 'r') as f:/with open(filename, 'r', encoding='utf-8') as f:/g" tools/px_generate_uorb_topic_files.py && \
     pip3 install --user toml empy jinja2 packaging pyros-genmsg numpy && \
     make VERBOSE=1 amovlab_sitl_default && \
     make VERBOSE=1 gazebo && \
     cd Tools/setup && \
     source ./ubuntu.sh && \
     rm -rf /var/lib/apt/lists/*
+
 
 # Download Gazebo model library
 RUN mkdir -p /root/.gazebo/models && \
