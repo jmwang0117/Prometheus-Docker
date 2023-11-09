@@ -1,6 +1,5 @@
 xhost local:root
-docker create -t --name ros_gui --runtime nvidia  -e NVIDIA_VISIBLE_DEVICES=all \
-    --gpus all \
+docker create -t --name ros_gui \
     -e DISPLAY=$DISPLAY \
     -e CYCLONEDDS_URI=$CYCLONEDDS_URI \
     -e XAUTHORITY=$XAUTHORITY \
