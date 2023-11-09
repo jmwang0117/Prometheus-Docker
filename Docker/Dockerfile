@@ -5,33 +5,52 @@ RUN apt-get update -q && \
     apt-get upgrade -yq && \
     apt-get install -yq wget curl git build-essential vim sudo lsb-release locales bash-completion tzdata gosu && \
     rm -rf /var/lib/apt/lists/*
+
 RUN useradd --create-home --home-dir /home/ubuntu --shell /bin/bash --user-group --groups adm,sudo ubuntu && \
     echo ubuntu:ubuntu | chpasswd && \
     echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Add ROS source and install required dependencies
+RUN apt-get update && \
+    apt-get install -y curl gnupg2 lsb-release && \
+    curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add - && \
+    echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list && \
+    apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends python-rosdep python-rosinstall python-rosinstall-generator python-wstool build-essential && \
+    rm -rf /var/lib/apt/lists/*
+
+# Initialize rosdep and update
+RUN rosdep init && \
+    rosdep update
+
+# Install ROS Melodic
 RUN git clone https://github.com/Tiryoh/ros_setup_scripts_ubuntu.git /tmp/ros_setup_scripts_ubuntu && \
     gosu ubuntu /tmp/ros_setup_scripts_ubuntu/ros-melodic-desktop.sh && \
     rm -rf /var/lib/apt/lists/*
+
 ENV USER ubuntu
 
-# Install Mavros package
+# Install additional packages and dependencies
 RUN apt-get update && \
-    apt-get install -y ros-melodic-mavros ros-melodic-mavros-extras && \
+    apt-get install -y \
+    ros-melodic-mavros \
+    ros-melodic-mavros-extras \
+    ros-melodic-rtabmap* \
+    ros-melodic-octomap-* \
+    ros-melodic-velodyne-gazebo-plugins \
+    ros-melodic-octomap-rviz-plugins \
+    ros-melodic-turtlebot3-* \
+    gnome-terminal \
+    python3-pip \
+    libgstreamer1.0-dev \
+    libgstreamer-plugins-base1.0-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # Install GeographicLib
 RUN wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh && \
     chmod +x install_geographiclib_datasets.sh && \
     ./install_geographiclib_datasets.sh
-
-# Install rtabmap
-RUN apt-get update && \
-    apt-get install -y ros-melodic-rtabmap* && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install Octomap
-RUN apt-get update && \
-    apt-get install -y ros-melodic-octomap-* && \
-    rm -rf /var/lib/apt/lists/*
 
 # Install NLopt
 RUN git clone https://github.com/stevengj/nlopt.git && \
@@ -47,11 +66,8 @@ RUN git clone -b v1.1 https://gitee.com/amovlab/Prometheus.git && \
     cd Prometheus && \
     git branch
 
-RUN apt-get install python3-pip
-
 # PX4 build environment setup and firmware installation (for V1.1)
 RUN apt-get update && \
-    apt-get install -y libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev && \
     git clone -b Prometheus_PX4_1.11.1 https://gitee.com/amovlab/prometheus_px4.git && \
     cd prometheus_px4/ && \
     git branch && \
@@ -62,18 +78,7 @@ RUN apt-get update && \
     source ./ubuntu.sh && \
     rm -rf /var/lib/apt/lists/*
 
-# Install simulation plugins
-RUN apt-get update && \
-    apt-get install -y ros-melodic-velodyne-gazebo-plugins && \
-    apt-get install -y ros-melodic-octomap-rviz-plugins && \
-    apt-get install -y ros-melodic-turtlebot3-* && \
-    rm -rf /var/lib/apt/lists/*
-
 # Download Gazebo model library
 RUN mkdir -p /root/.gazebo/models && \
     cd /root/.gazebo/models && \
     git clone https://gitee.com/potato77/gazebo_model
-    
-RUN apt-get update && \
-    apt-get install -y gnome-terminal && \
-    rm -rf /var/lib/apt/lists/*
