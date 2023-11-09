@@ -23,8 +23,10 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Initialize rosdep and update
+# Initialize rosdep and update
 RUN rosdep init && \
-    rosdep update
+    gosu ubuntu rosdep update
+
 
 # Install ROS Melodic
 RUN git clone https://github.com/Tiryoh/ros_setup_scripts_ubuntu.git /tmp/ros_setup_scripts_ubuntu && \
