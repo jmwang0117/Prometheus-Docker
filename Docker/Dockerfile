@@ -56,6 +56,16 @@ RUN wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/
     chmod +x install_geographiclib_datasets.sh && \
     ./install_geographiclib_datasets.sh
 
+# Install required dependencies and update CMake
+RUN apt-get update && \
+    apt-get install -y software-properties-common && \
+    wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null && \
+    apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' && \
+    apt-get update && \
+    apt-get install -y cmake && \
+    rm -rf /var/lib/apt/lists/*
+
+
 # Install NLopt
 RUN git clone https://github.com/stevengj/nlopt.git && \
     cd nlopt && \
