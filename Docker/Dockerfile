@@ -86,11 +86,12 @@ RUN apt-get update && \
     cd prometheus_px4/ && \
     git branch && \
     git submodule update --init --recursive && \
-    pip3 install --user toml empy jinja2 packaging && \
+    pip3 install --user toml empy jinja2 packaging pyros-genmsg && \
     make amovlab_sitl_default gazebo && \
     cd Tools/setup && \
     source ./ubuntu.sh && \
     rm -rf /var/lib/apt/lists/*
+
 
 # Download Gazebo model library
 RUN mkdir -p /root/.gazebo/models && \
