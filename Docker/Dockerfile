@@ -29,12 +29,7 @@ RUN useradd -m $USERNAME -u ${UID} -g ${GID} && \
     echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USERNAME && \
     chmod 0440 /etc/sudoers.d/$USERNAME
 
-# Upgrade CMake to version 3.27.7
-RUN wget -q https://cmake.org/files/v3.27/cmake-3.27.7-Linux-x86_64.tar.gz && \
-    tar xf cmake-3.27.7-Linux-x86_64.tar.gz && \
-    rm cmake-3.27.7-Linux-x86_64.tar.gz && \
-    sudo cp -r cmake-3.27.7-Linux-x86_64/* /usr && \
-    rm -rf cmake-3.27.7-Linux-x86_64
+
 
 # Setup ROS repositories
 RUN echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list && \
@@ -46,6 +41,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     less \
     emacs \
     tmux \
+    wget \
     bash-completion \
     command-not-found \
     software-properties-common \
@@ -77,7 +73,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgstreamer-plugins-base1.0-dev \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-
+    
+# Upgrade CMake to version 3.27.7
+RUN wget -q https://cmake.org/files/v3.27/cmake-3.27.7-Linux-x86_64.tar.gz && \
+    tar xf cmake-3.27.7-Linux-x86_64.tar.gz && \
+    rm cmake-3.27.7-Linux-x86_64.tar.gz && \
+    sudo cp -r cmake-3.27.7-Linux-x86_64/* /usr && \
+    rm -rf cmake-3.27.7-Linux-x86_64
+    
 RUN rosdep init
 
 USER $USERNAME
