@@ -1,43 +1,38 @@
-FROM dorowu/ubuntu-desktop-lxde-vnc:bionic
-LABEL maintainer="Tiryoh<tiryoh@gmail.com>"
+FROM nvidia/cudagl:11.4.2-devel-ubuntu18.04
 
-RUN apt-get update -q && \
-    apt-get upgrade -yq && \
-    apt-get install -yq apt-utils && \
-    apt-get install -yq wget curl git build-essential vim sudo lsb-release locales bash-completion tzdata gosu && \
-    rm -rf /var/lib/apt/lists/*
+# NVIDIA environment variables
+ENV NVIDIA_VISIBLE_DEVICES ${NVIDIA_VISIBLE_DEVICES:-all}
+ENV NVIDIA_DRIVER_CAPABILITIES ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics
 
+ENV DEBIAN_FRONTEND noninteractive
+ENV DISPLAY :99
 
-RUN useradd --create-home --home-dir /home/ubuntu --shell /bin/bash --user-group --groups adm,sudo ubuntu && \
-    echo ubuntu:ubuntu | chpasswd && \
-    echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-
-# Add ROS source and install required dependencies
-RUN apt-get update && \
-    apt-get install -y curl gnupg2 lsb-release && \
-    curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add - && \
-    echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list && \
-    apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends python-rosdep python-rosinstall python-rosinstall-generator python-wstool build-essential && \
-    rm -rf /var/lib/apt/lists/*
-
-# Initialize rosdep and update
-# Initialize rosdep and update
-RUN rosdep init && \
-    gosu ubuntu rosdep update
-
-
-# Install ROS Melodic
-RUN git clone https://github.com/Tiryoh/ros_setup_scripts_ubuntu.git /tmp/ros_setup_scripts_ubuntu && \
-    gosu ubuntu /tmp/ros_setup_scripts_ubuntu/ros-melodic-desktop.sh && \
-    rm -rf /var/lib/apt/lists/*
-
-ENV USER ubuntu
-
-# Install additional packages and dependencies
-RUN apt-get update && \
-    apt-get install -y \
+# Install necessary packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    sudo \
+    less \
+    emacs \
+    tmux \
+    bash-completion \
+    command-not-found \
+    software-properties-common \
+    xsel \
+    xdg-user-dirs \
+    python-pip \
+    python-protobuf \
+    python-pexpect \
+    pcl-tools \
+    libomp5 \
+    vulkan-utils \
+    gnupg2 \
+    curl \
+    lsb-release \
+    ros-melodic-desktop-full \
+    python-rosdep \
+    python-rosinstall \
+    python-rosinstall-generator \
+    python-wstool \
+    build-essential \
     ros-melodic-mavros \
     ros-melodic-mavros-extras \
     ros-melodic-rtabmap* \
@@ -48,31 +43,41 @@ RUN apt-get update && \
     gnome-terminal \
     python3-pip \
     libgstreamer1.0-dev \
-    libgstreamer-plugins-base1.0-dev && \
+    libgstreamer-plugins-base1.0-dev \
+    ubuntu-desktop \
+    x11vnc \
+    xvfb \
+    && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Install GeographicLib
+# Setup ROS repositories
+RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' && \
+    curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
+
+# Initialize rosdep
+RUN rosdep init && \
+    rosdep update
+
+# Install GeographicLib datasets
 RUN wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh && \
     chmod +x install_geographiclib_datasets.sh && \
     ./install_geographiclib_datasets.sh
 
-# Install required dependencies and update CMake
-RUN apt-get update && \
-    apt-get install -y software-properties-common && \
-    wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null && \
-    apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' && \
-    apt-get update && \
-    apt-get install -y cmake && \
-    rm -rf /var/lib/apt/lists/*
+# Set up the VNC server to run as a daemon
+RUN mkdir /root/.vnc && \
+    x11vnc -storepasswd "root" /root/.vnc/passwd && \
+    echo '#!/bin/bash\n\
+Xvfb :99 -screen 0 1024x768x16 &\n\
+sleep 5\n\
+gnome-session &\n\
+x11vnc -display :99 -usepw -forever -shared' > /usr/local/bin/start-vnc-server.sh && \
+    chmod +x /usr/local/bin/start-vnc-server.sh
 
+# Expose VNC port
+EXPOSE 5900
 
-# Install NLopt
-RUN git clone https://github.com/stevengj/nlopt.git && \
-    cd nlopt && \
-    mkdir build && \
-    cd build && \
-    cmake .. && \
-    make && \
-    sudo make install
+# Set the working directory
+WORKDIR /root
 
-
+# Make sure the script is executed when the container starts
+CMD ["/usr/local/bin/start-vnc-server.sh"]
