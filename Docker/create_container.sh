@@ -1,8 +1,14 @@
-docker run -d --restart=on-failure \
-    --name ros_gui \
-    --cap-add=SYS_PTRACE \
-    --gpus all  \
-    --shm-size=8g \
-    -p 10022:22  \
-    -p 14000:4000  \
-    gezp/ubuntu-desktop:18.04-cu11.2.2
+xhost local:root
+docker create -t --name prometheus --runtime nvidia  -e NVIDIA_VISIBLE_DEVICES=all \
+    --gpus all \
+    -e DISPLAY=$DISPLAY \
+    -e CYCLONEDDS_URI=$CYCLONEDDS_URI \
+    -e XAUTHORITY=$XAUTHORITY \
+    --network host \
+    --ipc host \
+    --privileged \
+    --shm-size 8G \
+    -v /dev:/dev \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    -v $XAUTHORITY:$XAUTHORITY \
+    b3d9054e3242 bash
