@@ -7,10 +7,18 @@ ENV NVIDIA_DRIVER_CAPABILITIES ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPA
 ENV DEBIAN_FRONTEND noninteractive
 ENV DISPLAY :99
 
+# Install required utilities first
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gnupg2 \
+    lsb-release \
+    curl \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # Setup ROS repositories
-RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' && \
+RUN echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list && \
     curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
-    
+
 # Install necessary packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
     sudo \
@@ -28,9 +36,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pcl-tools \
     libomp5 \
     vulkan-utils \
-    gnupg2 \
-    curl \
-    lsb-release \
     ros-melodic-desktop-full \
     python-rosdep \
     python-rosinstall \
@@ -39,11 +44,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     ros-melodic-mavros \
     ros-melodic-mavros-extras \
-    ros-melodic-rtabmap* \
-    ros-melodic-octomap-* \
+    # Specify exact package names instead of using wildcards
+    ros-melodic-rtabmap \
+    ros-melodic-octomap \
     ros-melodic-velodyne-gazebo-plugins \
     ros-melodic-octomap-rviz-plugins \
-    ros-melodic-turtlebot3-* \
+    ros-melodic-turtlebot3 \
     gnome-terminal \
     python3-pip \
     libgstreamer1.0-dev \
