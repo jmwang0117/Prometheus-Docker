@@ -49,6 +49,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python-pexpect \
     pcl-tools \
     libomp5 \
+    numpy \
     vulkan-utils \
     ros-melodic-desktop-full \
     python-rosdep \
