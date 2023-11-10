@@ -5,19 +5,19 @@ ENV NVIDIA_VISIBLE_DEVICES ${NVIDIA_VISIBLE_DEVICES:-all}
 ENV NVIDIA_DRIVER_CAPABILITIES ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics
 
 ENV DEBIAN_FRONTEND noninteractive
-ENV DISPLAY :99
 
 # Install required utilities first
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg2 \
     lsb-release \
     curl \
+    apt-utils \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # add new sudo user
-ENV USERNAME jmwang
-ENV PASSWORD wjm
+ENV USERNAME ubuntu
+ENV PASSWORD ubuntu
 ENV HOME /home/$USERNAME
 RUN groupadd -f -g ${GID} ${USERNAME}
 RUN useradd -m $USERNAME -u ${UID} -g ${GID} && \
@@ -27,7 +27,7 @@ RUN useradd -m $USERNAME -u ${UID} -g ${GID} && \
     mkdir /etc/sudoers.d && \
     echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USERNAME && \
     chmod 0440 /etc/sudoers.d/$USERNAME
-    
+
 # Setup ROS repositories
 RUN echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list && \
     curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
@@ -67,13 +67,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
     libgstreamer1.0-dev \
     libgstreamer-plugins-base1.0-dev \
-    ubuntu-desktop \
-    x11vnc \
-    xvfb \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-
-
 
 RUN rosdep init
 
@@ -88,34 +83,11 @@ RUN mkdir -p /etc/vulkan/icd.d && \
     echo '{ "file_format_version" : "1.0.0", "ICD" : { "library_path" : "libGLX_nvidia.so.0", "api_version" : "1.1.99" } }' > /etc/vulkan/icd.d/nvidia_icd.json
 RUN echo > /etc/ld.so.preload
 
-# Install Ubuntu desktop and VNC server
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ubuntu-desktop \
-    x11vnc \
-    && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# Set up VNC server
-RUN mkdir ~/.vnc && \
-    x11vnc -storepasswd $PASSWORD ~/.vnc/passwd
-
-# Set up the VNC server to run as a daemon
-RUN echo '#!/bin/bash\n\
-Xvfb :99 -screen 0 1024x768x16 &\n\
-sleep 5\n\
-startxfce4 &\n\
-x11vnc -display :99 -usepw -forever -shared' > /usr/local/bin/start-vnc-server.sh && \
-    chmod +x /usr/local/bin/start-vnc-server.sh
-
-# Expose VNC port
-EXPOSE 5900
-
 # Set display environment variable
 ENV DISPLAY :99
 
 # Switch back to user
 USER $USERNAME
 
-# Make sure the script is executed when the container starts
-CMD ["/usr/local/bin/start-vnc-server.sh"]
+# Set the working directory
+WORKDIR /home/$USERNAME
