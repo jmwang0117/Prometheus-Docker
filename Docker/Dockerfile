@@ -1,9 +1,10 @@
 FROM nvidia/cudagl:11.4.2-devel-ubuntu18.04
 
 # NVIDIA environment variables
+ENV GID 1000
+ENV UID 1000
 ENV NVIDIA_VISIBLE_DEVICES ${NVIDIA_VISIBLE_DEVICES:-all}
 ENV NVIDIA_DRIVER_CAPABILITIES ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics
-
 ENV DEBIAN_FRONTEND noninteractive
 
 # Install required utilities first
