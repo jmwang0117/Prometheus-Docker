@@ -141,9 +141,9 @@ RUN git clone -b Prometheus_PX4_1.11.1 https://gitee.com/amovlab/prometheus_px4.
 # Set up ROS environment
 RUN echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc
 USER root
-RUN apt-get install xorg openbox
-RUN apt install xfce4 xfce4-goodies vim
-RUN apt install tightvncserver
+RUN apt-get install -y xorg openbox
+RUN apt install -y xfce4 xfce4-goodies vim
+RUN apt install -y tightvncserver
 
 # Switch back to user
 USER $USERNAME
