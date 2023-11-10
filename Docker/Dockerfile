@@ -132,12 +132,22 @@ RUN git clone -b v1.1 https://gitee.com/amovlab/Prometheus.git && \
 
 # Install Python dependencies
 RUN pip install --user toml empy jinja2 packaging
+RUN apt-get install libpthread-stubs0-dev
+
+RUN echo 'export LC_ALL=C.UTF-8' >> ~/.bashrc
+RUN echo 'export LANG=C.UTF-8' >> ~/.bashrc
+RUN echo 'source ~/.bashrc' >> ~/.bashrc
+
 
 # Clone prometheus_px4 repository
 RUN git clone -b Prometheus_PX4_1.11.1 https://gitee.com/amovlab/prometheus_px4.git && \
     cd prometheus_px4 && \
     git branch && \
-    git submodule update --init --recursive
+    git submodule update --init --recursive &&\
+    pip3 install --user toml empy jinja2 packaging pyyaml numpy &&\
+    make amovlab_sitl_default gazebo &&\
+    cd Tools/setup &&\
+    source ./ubuntu.sh
 
 # Set up ROS environment
 RUN echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc
