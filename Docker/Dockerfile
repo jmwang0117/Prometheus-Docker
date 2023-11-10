@@ -9,10 +9,10 @@ ENV DEBIAN_FRONTEND noninteractive
 
 # Install required utilities first
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    apt-utils \
     gnupg2 \
     lsb-release \
     curl \
+    apt-utils \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -29,8 +29,6 @@ RUN useradd -m $USERNAME -u ${UID} -g ${GID} && \
     echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USERNAME && \
     chmod 0440 /etc/sudoers.d/$USERNAME
 
-
-
 # Setup ROS repositories
 RUN echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list && \
     curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
@@ -41,7 +39,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     less \
     emacs \
     tmux \
-    wget \
     bash-completion \
     command-not-found \
     software-properties-common \
@@ -73,14 +70,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgstreamer-plugins-base1.0-dev \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-    
-# Upgrade CMake to version 3.27.7
-RUN wget -q https://cmake.org/files/v3.27/cmake-3.27.7-Linux-x86_64.tar.gz && \
-    tar xf cmake-3.27.7-Linux-x86_64.tar.gz && \
-    rm cmake-3.27.7-Linux-x86_64.tar.gz && \
-    sudo cp -r cmake-3.27.7-Linux-x86_64/* /usr && \
-    rm -rf cmake-3.27.7-Linux-x86_64
-    
+
 RUN rosdep init
 
 USER $USERNAME
@@ -95,10 +85,23 @@ USER root
 RUN mkdir -p /etc/vulkan/icd.d && \
     echo '{ "file_format_version" : "1.0.0", "ICD" : { "library_path" : "libGLX_nvidia.so.0", "api_version" : "1.1.99" } }' > /etc/vulkan/icd.d/nvidia_icd.json
 RUN echo > /etc/ld.so.preload
-
+USER $USERNAME
 
 # Set display environment variable
 ENV DISPLAY :99
+
+# Switch back to user
+USER $USERNAME
+
+# Set the working directory
+WORKDIR /home/$USERNAME
+
+# Upgrade CMake to version 3.27.7
+RUN wget -q https://github.com/Kitware/CMake/releases/download/v3.27.7/cmake-3.27.7-linux-x86_64.tar.gz && \
+    tar xf cmake-3.27.7-linux-x86_64.tar.gz && \
+    rm cmake-3.27.7-linux-x86_64.tar.gz && \
+    sudo cp -r cmake-3.27.7-linux-x86_64/* /usr && \
+    rm -rf cmake-3.27.7-linux-x86_64
 
 # Install geographiclib datasets
 RUN wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh && \
@@ -110,6 +113,7 @@ RUN sudo apt-get update && \
     sudo apt-get install -y ros-melodic-rtabmap* && \
     sudo apt-get install -y ros-melodic-octomap-* && \
     sudo apt-get install -y libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+
 
 # Install NLopt
 RUN git clone https://github.com/stevengj/nlopt.git && \
