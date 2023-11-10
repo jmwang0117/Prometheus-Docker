@@ -80,7 +80,7 @@ RUN rosdep init
 USER $USERNAME
 WORKDIR /home/$USERNAME
 RUN rosdep update
-
+RUN echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc
 SHELL ["/bin/bash", "-c"]
 
 # Vulkan
