@@ -80,9 +80,13 @@ RUN echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc
 SHELL ["/bin/bash", "-c"]
 
 # Vulkan
+# Vulkan
+USER root
 RUN mkdir -p /etc/vulkan/icd.d && \
     echo '{ "file_format_version" : "1.0.0", "ICD" : { "library_path" : "libGLX_nvidia.so.0", "api_version" : "1.1.99" } }' > /etc/vulkan/icd.d/nvidia_icd.json
 RUN echo > /etc/ld.so.preload
+USER $USERNAME
+
 
 # Set display environment variable
 ENV DISPLAY :99
